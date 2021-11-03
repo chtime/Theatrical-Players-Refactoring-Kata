@@ -1,10 +1,27 @@
 public class Performance {
 
-    public String playID;
-    public int audience;
+    private final Play play;
 
-    public Performance(String playID, int audience) {
-        this.playID = playID;
+    private final int audience;
+
+    public Performance(Play play, int audience) {
+        this.play = play;
         this.audience = audience;
+    }
+
+    public int getAudienceSize() {
+        return audience;
+    }
+
+    public int getAmount() {
+        return this.play.calculateAmount(this.audience);
+    }
+
+    public int getVolumeCredits() {
+        return this.play.calculateVolumeCredits(this.audience);
+    }
+
+    public String getPlayName() {
+        return this.play.getName();
     }
 }

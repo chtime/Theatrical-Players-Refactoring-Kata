@@ -4,47 +4,27 @@ import java.util.Map;
 
 public class StatementPrinter {
 
-    public String print(Invoice invoice, Map<String, Play> plays) {
-        var totalAmount = 0;
-        var volumeCredits = 0;
-        var result = String.format("Statement for %s\n", invoice.customer);
+    private final NumberFormat numberFormat = NumberFormat.getCurrencyInstance(Locale.US);
 
-        NumberFormat frmt = NumberFormat.getCurrencyInstance(Locale.US);
+    public String print(Invoice invoice) {
+        final StringBuilder builder = new StringBuilder();
 
-        for (var perf : invoice.performances) {
-            var play = plays.get(perf.playID);
-            var thisAmount = 0;
+        int totalAmount = invoice.getTotalAmount();
+        int volumeCredits = invoice.getTotalVolumeCredits();
 
-            switch (play.type) {
-                case "tragedy":
-                    thisAmount = 40000;
-                    if (perf.audience > 30) {
-                        thisAmount += 1000 * (perf.audience - 30);
-                    }
-                    break;
-                case "comedy":
-                    thisAmount = 30000;
-                    if (perf.audience > 20) {
-                        thisAmount += 10000 + 500 * (perf.audience - 20);
-                    }
-                    thisAmount += 300 * perf.audience;
-                    break;
-                default:
-                    throw new Error("unknown type: ${play.type}");
-            }
+        builder.append(String.format("Statement for %s\n", invoice.getCustomer()));
+        invoice.getPerformances().forEach((perf) -> builder.append(formatPerformance(perf)));
+        builder.append(String.format("Amount owed is %s\n", numberFormat.format(totalAmount / 100)));
+        builder.append(String.format("You earned %s credits\n", volumeCredits));
 
-            // add volume credits
-            volumeCredits += Math.max(perf.audience - 30, 0);
-            // add extra credit for every ten comedy attendees
-            if ("comedy".equals(play.type)) volumeCredits += Math.floor(perf.audience / 5);
+        return builder.toString();
+    }
 
-            // print line for this order
-            result += String.format("  %s: %s (%s seats)\n", play.name, frmt.format(thisAmount / 100), perf.audience);
-            totalAmount += thisAmount;
-        }
-        result += String.format("Amount owed is %s\n", frmt.format(totalAmount / 100));
-        result += String.format("You earned %s credits\n", volumeCredits);
-        return result;
+    private String formatPerformance(Performance perf) {
+        int performanceAmount = perf.getAmount();
+        int performanceAudience = perf.getAudienceSize();
+        String playName = perf.getPlayName();
+        return String.format("  %s: %s (%s seats)\n", playName, numberFormat.format(performanceAmount / 100), performanceAudience);
     }
 
 }
